@@ -9,7 +9,9 @@ public class ProductoDTO {
     private String nombre;
     @SerializedName("descripcion")
     private String descripcion;
+    @SerializedName("precio")
     private BigDecimal precio;
+    @SerializedName("stock")
     private Integer stock;
 
     public ProductoDTO() {
