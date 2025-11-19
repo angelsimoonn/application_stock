@@ -1,18 +1,21 @@
 package com.example.application_stock.model;
 
-import com.example.application_stock.TipoMovimiento;
+import com.google.gson.annotations.SerializedName;
 
 import java.time.LocalDateTime;
 
-public class MovimientoDTO {
+public class Movimiento {
+    @SerializedName("descripcion")
     private String descripcion;
+    @SerializedName("tipoMovimiento")
     private TipoMovimiento tipoMovimiento;
+    @SerializedName("fecha")
     private LocalDateTime fecha;
 
-    public MovimientoDTO() {
+    public Movimiento() {
     }
 
-    public MovimientoDTO(String descripcion, TipoMovimiento tipoMovimiento, LocalDateTime fecha) {
+    public Movimiento(String descripcion, TipoMovimiento tipoMovimiento, LocalDateTime fecha) {
         this.descripcion = descripcion;
         this.tipoMovimiento = tipoMovimiento;
         this.fecha = fecha;

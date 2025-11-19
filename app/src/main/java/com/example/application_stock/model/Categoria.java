@@ -2,26 +2,20 @@ package com.example.application_stock.model;
 
 import com.google.gson.annotations.SerializedName;
 
-import java.math.BigDecimal;
-
-public class ProductoDTO {
+public class Categoria {
+    @SerializedName("id")
+    private Long id;
     @SerializedName("nombre")
     private String nombre;
     @SerializedName("descripcion")
     private String descripcion;
-    @SerializedName("precio")
-    private BigDecimal precio;
-    @SerializedName("stock")
-    private Integer stock;
 
-    public ProductoDTO() {
+    public Categoria() {
     }
 
-    public ProductoDTO(String nombre, String descripcion, BigDecimal precio, Integer stock) {
+    public Categoria(String nombre, String descripcion) {
         this.nombre = nombre;
         this.descripcion = descripcion;
-        this.precio = precio;
-        this.stock = stock;
     }
 
     public String getNombre() {
@@ -40,19 +34,11 @@ public class ProductoDTO {
         this.descripcion = descripcion;
     }
 
-    public BigDecimal getPrecio() {
-        return precio;
+    public Long getId() {
+        return id;
     }
 
-    public void setPrecio(BigDecimal precio) {
-        this.precio = precio;
-    }
-
-    public Integer getStock() {
-        return stock;
-    }
-
-    public void setStock(Integer stock) {
-        this.stock = stock;
+    public void setId(Long id) {
+        this.id = id;
     }
 }
