@@ -20,19 +20,31 @@ public interface ApiService {
     @GET("productos")
     Call<List<Producto>> getProductos();
 
-    @POST("productos")
+    @POST("producto")
     Call<Producto> crearProducto(@Body Producto p);
 
-    @GET("productos/{id}")
+    @GET("producto/{id}")
     Call<Producto> getProducto(@Path("id") Long id);
 
-    @PUT("productos/{id}")
+    @PUT("producto/{id}")
     Call<Producto> actualizarProducto(@Path("id") Long id, @Body Producto p);
 
-    @DELETE("productos/{id}")
+    @DELETE("producto/{id}")
     Call<Void> eliminarProducto(@Path("id") Long id);
 
     // CATEGORIAS
     @GET("categorias")
     Call<List<Categoria>> getCategorias();
+
+    @POST("categoria")
+    Call<Producto> crearCategoria(@Body Producto p);
+
+    @GET("categoria/{id}")
+    Call<Producto> getCategoria(@Path("id") Long id);
+
+    @PUT("categoria/{id}")
+    Call<Producto> actualizarCategoria(@Path("id") Long id, @Body Producto p);
+
+    @DELETE("categoria/{id}")
+    Call<Void> eliminarCategoria(@Path("id") Long id);
 }

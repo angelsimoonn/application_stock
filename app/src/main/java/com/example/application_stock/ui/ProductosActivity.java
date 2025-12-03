@@ -7,6 +7,7 @@ import android.widget.Button;
 import android.widget.SearchView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.application_stock.R;
@@ -36,11 +37,19 @@ public class ProductosActivity extends AppCompatActivity {
 
         btnCrearProducto = findViewById(R.id.btnAddProducto);
         recycler = findViewById(R.id.recyclerProductos);
+        recycler.setLayoutManager(new LinearLayoutManager(this));
+
 
         btnCrearProducto.setOnClickListener(v -> {
             startActivity(new Intent(ProductosActivity.this, ProductoCrearActivity.class));
         });
 
+        cargarProductos();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         cargarProductos();
     }
 

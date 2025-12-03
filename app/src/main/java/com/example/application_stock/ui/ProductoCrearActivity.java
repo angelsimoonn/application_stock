@@ -90,9 +90,7 @@ public class ProductoCrearActivity extends AppCompatActivity {
         p.setPrecio(new BigDecimal(txtPrecio.getText().toString()));
         p.setStock(Integer.parseInt(txtStock.getText().toString()));
 
-        Categoria c = new Categoria();
-        c.setId(categoriaSeleccionadaId);
-        p.setCategoria(c);
+        p.setCategoriaId(categoriaSeleccionadaId);
 
         ApiService api = ApiClient.getClient(this).create(ApiService.class);
 

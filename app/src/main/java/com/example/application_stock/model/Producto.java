@@ -13,18 +13,18 @@ public class Producto {
     private BigDecimal precio;
     @SerializedName("stock")
     private Integer stock;
-    @SerializedName("categoria")
-    private Categoria categoria;
+    @SerializedName("categoriaId")
+    private Long categoriaId;
 
     public Producto() {
     }
 
-    public Producto(String nombre, String descripcion, BigDecimal precio, Integer stock, Categoria categoria) {
+    public Producto(String nombre, String descripcion, BigDecimal precio, Integer stock, Long categoriaId) {
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.precio = precio;
         this.stock = stock;
-        this.categoria = categoria;
+        this.categoriaId = categoriaId;
     }
 
     public String getNombre() {
@@ -59,11 +59,11 @@ public class Producto {
         this.stock = stock;
     }
 
-    public Categoria getCategoria() {
-        return categoria;
+    public Long getCategoriaId() {
+        return categoriaId;
     }
 
-    public void setCategoria(Categoria categoria) {
-        this.categoria = categoria;
+    public void setCategoriaId(Long categoria) {
+        this.categoriaId = categoriaId;
     }
 }

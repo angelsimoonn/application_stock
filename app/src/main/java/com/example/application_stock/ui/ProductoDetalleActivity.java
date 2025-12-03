@@ -69,8 +69,8 @@ public class ProductoDetalleActivity extends AppCompatActivity {
                     txtPrecio.setText(String.valueOf(p.getPrecio()));
                     txtStock.setText(String.valueOf(p.getStock()));
 
-                    if (p.getCategoria() != null) {
-                        categoriaSeleccionadaId = p.getCategoria().getId();
+                    if (p.getCategoriaId() != null) {
+                        categoriaSeleccionadaId = p.getCategoriaId();
                         seleccionarCategoria(categoriaSeleccionadaId);
                     }
                 }
@@ -136,9 +136,7 @@ public class ProductoDetalleActivity extends AppCompatActivity {
         p.setPrecio(new BigDecimal(txtPrecio.getText().toString()));
         p.setStock(Integer.parseInt(txtStock.getText().toString()));
 
-        Categoria c = new Categoria();
-        c.setId(categoriaSeleccionadaId);
-        p.setCategoria(c);
+        p.setCategoriaId(categoriaSeleccionadaId);
 
         ApiService api = ApiClient.getClient(this).create(ApiService.class);
 
