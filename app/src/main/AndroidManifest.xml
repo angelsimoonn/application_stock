@@ -26,6 +26,7 @@
         <activity android:name=".ui.ProductoDetalleActivity"/>
         <activity android:name=".ui.ProductoCrearActivity"/>
         <activity android:name=".ui.ProductosActivity"/>
+        <activity android:name=".ui.CategoriasActivity"/>
     </application>
     <uses-permission android:name="android.permission.INTERNET"/>
 </manifest>

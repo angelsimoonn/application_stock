@@ -47,4 +47,7 @@ public interface ApiService {
 
     @DELETE("categoria/{id}")
     Call<Void> eliminarCategoria(@Path("id") Long id);
+
+    @GET("productos/categoria/{id}")
+    Call<List<Producto>> getProductosPorCategoria(@Path("id") Long id);
 }

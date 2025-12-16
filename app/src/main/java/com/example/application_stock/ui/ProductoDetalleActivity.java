@@ -1,10 +1,10 @@
 package com.example.application_stock.ui;
 
 import android.os.Bundle;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -48,33 +48,75 @@ public class ProductoDetalleActivity extends AppCompatActivity {
         btnGuardar = findViewById(R.id.btnGuardarDetalle);
         btnEliminar = findViewById(R.id.btnEliminarDetalle);
 
+        // CAMBIO 1: Solo llamamos a cargarCategorias.
+        // cargarProducto() se llamará cuando las categorías estén listas.
         cargarCategorias();
-        cargarProducto();
 
         btnGuardar.setOnClickListener(v -> guardarCambios());
         btnEliminar.setOnClickListener(v -> eliminarProducto());
     }
 
+    private void cargarCategorias() {
+        ApiService api = ApiClient.getClient(this).create(ApiService.class);
+        api.getCategorias().enqueue(new Callback<List<Categoria>>() {
+            @Override
+            public void onResponse(Call<List<Categoria>> call, Response<List<Categoria>> response) {
+                if (response.isSuccessful()) {
+                    listaCategorias = response.body();
+
+                    ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                            ProductoDetalleActivity.this,
+                            android.R.layout.simple_spinner_item,
+                            listaCategorias.stream().map(Categoria::getNombre).toArray(String[]::new)
+                    );
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    spinnerCategoria.setAdapter(adapter);
+
+                    spinnerCategoria.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(android.widget.AdapterView<?> parent, android.view.View view, int position, long id) {
+                            if (listaCategorias != null && !listaCategorias.isEmpty()) {
+                                Categoria c = listaCategorias.get(position);
+                                categoriaSeleccionadaId = c.getId();
+
+                                // LOG PARA VER QUÉ ESTÁS SELECCIONANDO REALMENTE
+                                System.out.println("ANDROID DEBUG: Seleccionado: " + c.getNombre() + " -> ID REAL: " + c.getId());
+                            }
+                        }
+                        @Override
+                        public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+                    });
+
+                    // CAMBIO 2: AHORA que tenemos la lista, cargamos el producto
+                    // para poder seleccionar la categoría correcta en el spinner
+                    cargarProducto();
+                }
+            }
+            @Override
+            public void onFailure(Call<List<Categoria>> call, Throwable t) {
+                Toast.makeText(ProductoDetalleActivity.this, "Error cargando categorías", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void cargarProducto() {
         ApiService api = ApiClient.getClient(this).create(ApiService.class);
 
-        // Ahora 'productoId' será un número real (ej: 1, 2, 5) y no -1
         api.getProducto(productoId).enqueue(new Callback<Producto>() {
             @Override
             public void onResponse(Call<Producto> call, Response<Producto> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Producto p = response.body();
 
-                    // AQUÍ ES DONDE SE RELLENAN LOS DATOS
                     txtNombre.setText(p.getNombre());
                     txtDescripcion.setText(p.getDescripcion());
-                    // Convertimos a String para que no de error
                     txtPrecio.setText(p.getPrecio() != null ? String.valueOf(p.getPrecio()) : "");
                     txtStock.setText(p.getStock() != null ? String.valueOf(p.getStock()) : "");
 
-                    // Seleccionar la categoría en el spinner si existe
+                    // CAMBIO 3: Asignamos y seleccionamos visualmente
                     if (p.getCategoriaId() != null) {
-                        seleccionarCategoria(p.getCategoriaId());
+                        categoriaSeleccionadaId = p.getCategoriaId(); // Aseguramos la variable
+                        seleccionarCategoria(p.getCategoriaId());     // Aseguramos la vista
                     }
                 }
             }
@@ -86,87 +128,78 @@ public class ProductoDetalleActivity extends AppCompatActivity {
         });
     }
 
-    private void cargarCategorias() {
-        ApiService api = ApiClient.getClient(this).create(ApiService.class);
-
-        api.getCategorias().enqueue(new Callback<List<Categoria>>() {
-            @Override
-            public void onResponse(Call<List<Categoria>> call, Response<List<Categoria>> response) {
-                if (response.isSuccessful()) {
-                    listaCategorias = response.body();
-
-                    ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                            ProductoDetalleActivity.this,
-                            android.R.layout.simple_spinner_item,
-                            listaCategorias.stream().map(c -> c.getNombre()).toArray(String[]::new)
-                    );
-
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                    spinnerCategoria.setAdapter(adapter);
-
-                    spinnerCategoria.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
-                        @Override
-                        public void onItemSelected(android.widget.AdapterView<?> parent, android.view.View view, int position, long id) {
-                            categoriaSeleccionadaId = listaCategorias.get(position).getId();
-                        }
-
-                        @Override
-                        public void onNothingSelected(android.widget.AdapterView<?> parent) {}
-                    });
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<Categoria>> call, Throwable t) {}
-        });
-    }
-
-    private void seleccionarCategoria(Long id) {
+    private void seleccionarCategoria(Long idBuscado) {
         if (listaCategorias == null) return;
-
         for (int i = 0; i < listaCategorias.size(); i++) {
-            if (listaCategorias.get(i).getId().equals(id)) {
+            if (listaCategorias.get(i).getId().equals(idBuscado)) {
                 spinnerCategoria.setSelection(i);
-                break;
+                return;
             }
         }
     }
 
     private void guardarCambios() {
+        if (txtNombre.getText().toString().isEmpty()) {
+            Toast.makeText(this, "El nombre es obligatorio", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         Producto p = new Producto();
         p.setNombre(txtNombre.getText().toString());
         p.setDescripcion(txtDescripcion.getText().toString());
-        p.setPrecio(new BigDecimal(txtPrecio.getText().toString()));
-        p.setStock(Integer.parseInt(txtStock.getText().toString()));
 
-        p.setCategoriaId(categoriaSeleccionadaId);
+        try {
+            String precioStr = txtPrecio.getText().toString();
+            if (precioStr.isEmpty()) precioStr = "0";
+            p.setPrecio(new BigDecimal(precioStr));
+
+            String stockStr = txtStock.getText().toString();
+            if (stockStr.isEmpty()) stockStr = "0";
+            p.setStock(Integer.parseInt(stockStr));
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, "Números incorrectos", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // CAMBIO 4: Validación extra
+        if (categoriaSeleccionadaId != null) {
+            p.setCategoriaId(categoriaSeleccionadaId);
+        } else {
+            Toast.makeText(this, "Espera a que carguen las categorías", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        com.google.gson.Gson gson = new com.google.gson.Gson();
+        String jsonQueSeVaAEnviar = gson.toJson(p);
+        System.out.println("ANDROID DEBUG JSON: " + jsonQueSeVaAEnviar);
 
         ApiService api = ApiClient.getClient(this).create(ApiService.class);
-
         api.actualizarProducto(productoId, p).enqueue(new Callback<Producto>() {
             @Override
             public void onResponse(Call<Producto> call, Response<Producto> response) {
                 if (response.isSuccessful()) {
                     Toast.makeText(ProductoDetalleActivity.this, "Actualizado correctamente", Toast.LENGTH_SHORT).show();
                     finish();
+                } else {
+                    Toast.makeText(ProductoDetalleActivity.this, "Error servidor: " + response.code(), Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
-            public void onFailure(Call<Producto> call, Throwable t) {}
+            public void onFailure(Call<Producto> call, Throwable t) {
+                Toast.makeText(ProductoDetalleActivity.this, "Error de red", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
     private void eliminarProducto() {
         ApiService api = ApiClient.getClient(this).create(ApiService.class);
-
         api.eliminarProducto(productoId).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 Toast.makeText(ProductoDetalleActivity.this, "Producto eliminado", Toast.LENGTH_SHORT).show();
                 finish();
             }
-
             @Override
             public void onFailure(Call<Void> call, Throwable t) {}
         });
