@@ -2,9 +2,10 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:padding="10dp"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:padding="12dp"
+    android:background="@android:drawable/dialog_holo_light_frame">
 
     <TextView
         android:id="@+id/txtNombreItem"
@@ -13,17 +14,32 @@
         android:text="Nombre del producto"
         android:textStyle="bold"
         android:textSize="18sp"
+        android:textColor="#000000"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
     <TextView
         android:id="@+id/txtPrecioItem"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Precio"
-        android:layout_marginTop="4dp"
+        android:text="0.00 €"
+        android:textSize="16sp"
+        android:layout_marginTop="8dp"
+        android:textColor="#4CAF50"
         app:layout_constraintTop_toBottomOf="@id/txtNombreItem"
         app:layout_constraintStart_toStartOf="parent"/>
+
+    <TextView
+        android:id="@+id/txtStockItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Stock: 0"
+        android:textSize="14sp"
+        android:textStyle="italic"
+        android:textColor="#555555"
+        app:layout_constraintBottom_toBottomOf="@id/txtPrecioItem"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/txtPrecioItem" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -5,6 +5,8 @@ import com.google.gson.annotations.SerializedName;
 import java.math.BigDecimal;
 
 public class Producto {
+    @SerializedName("id")
+    private Long id;
     @SerializedName("nombre")
     private String nombre;
     @SerializedName("descripcion")
@@ -20,6 +22,15 @@ public class Producto {
     }
 
     public Producto(String nombre, String descripcion, BigDecimal precio, Integer stock, Long categoriaId) {
+        this.nombre = nombre;
+        this.descripcion = descripcion;
+        this.precio = precio;
+        this.stock = stock;
+        this.categoriaId = categoriaId;
+    }
+
+    public Producto(Long id, String nombre, String descripcion, BigDecimal precio, Integer stock, Long categoriaId) {
+        this.id = id;
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.precio = precio;
@@ -65,5 +76,13 @@ public class Producto {
 
     public void setCategoriaId(Long categoria) {
         this.categoriaId = categoriaId;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }

@@ -37,13 +37,13 @@ public interface ApiService {
     Call<List<Categoria>> getCategorias();
 
     @POST("categoria")
-    Call<Producto> crearCategoria(@Body Producto p);
+    Call<Categoria> crearCategoria(@Body Categoria c); // Antes devolvía Call<Producto> y recibía Producto
 
     @GET("categoria/{id}")
-    Call<Producto> getCategoria(@Path("id") Long id);
+    Call<Categoria> getCategoria(@Path("id") Long id); // Antes devolvía Call<Producto>
 
     @PUT("categoria/{id}")
-    Call<Producto> actualizarCategoria(@Path("id") Long id, @Body Producto p);
+    Call<Categoria> actualizarCategoria(@Path("id") Long id, @Body Categoria c); // Antes Call<Producto>
 
     @DELETE("categoria/{id}")
     Call<Void> eliminarCategoria(@Path("id") Long id);

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.SearchView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -62,11 +63,24 @@ public class ProductosActivity extends AppCompatActivity {
                 if (response.isSuccessful()) {
                     adapter = new ProductosAdapter(response.body());
                     recycler.setAdapter(adapter);
+                } else {
+                    // Si el token falló (Error 403) o hay otro error
+                    if (response.code() == 403 || response.code() == 401) {
+                        Toast.makeText(ProductosActivity.this, "Sesión caducada", Toast.LENGTH_SHORT).show();
+                        // Borrar token y volver al login
+                        new com.example.application_stock.storage.TokenManager(ProductosActivity.this).clear();
+                        startActivity(new Intent(ProductosActivity.this, LoginActivity.class));
+                        finish();
+                    } else {
+                        Toast.makeText(ProductosActivity.this, "Error al cargar: " + response.code(), Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
 
             @Override
-            public void onFailure(Call<List<Producto>> call, Throwable t) {}
+            public void onFailure(Call<List<Producto>> call, Throwable t) {
+                Toast.makeText(ProductosActivity.this, "Error de conexión: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
         });
     }
 }

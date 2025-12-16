@@ -58,20 +58,23 @@ public class ProductoDetalleActivity extends AppCompatActivity {
     private void cargarProducto() {
         ApiService api = ApiClient.getClient(this).create(ApiService.class);
 
+        // Ahora 'productoId' será un número real (ej: 1, 2, 5) y no -1
         api.getProducto(productoId).enqueue(new Callback<Producto>() {
             @Override
             public void onResponse(Call<Producto> call, Response<Producto> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Producto p = response.body();
 
+                    // AQUÍ ES DONDE SE RELLENAN LOS DATOS
                     txtNombre.setText(p.getNombre());
                     txtDescripcion.setText(p.getDescripcion());
-                    txtPrecio.setText(String.valueOf(p.getPrecio()));
-                    txtStock.setText(String.valueOf(p.getStock()));
+                    // Convertimos a String para que no de error
+                    txtPrecio.setText(p.getPrecio() != null ? String.valueOf(p.getPrecio()) : "");
+                    txtStock.setText(p.getStock() != null ? String.valueOf(p.getStock()) : "");
 
+                    // Seleccionar la categoría en el spinner si existe
                     if (p.getCategoriaId() != null) {
-                        categoriaSeleccionadaId = p.getCategoriaId();
-                        seleccionarCategoria(categoriaSeleccionadaId);
+                        seleccionarCategoria(p.getCategoriaId());
                     }
                 }
             }
