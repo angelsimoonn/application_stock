@@ -50,4 +50,7 @@ public interface ApiService {
 
     @GET("productos/categoria/{id}")
     Call<List<Producto>> getProductosPorCategoria(@Path("id") Long id);
+
+    @PUT("producto/{id}/stock")
+    Call<Producto> actualizarStock(@Path("id") Long id, @Query("cantidad") int cantidad);
 }

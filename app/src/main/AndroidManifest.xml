@@ -27,6 +27,11 @@
         <activity android:name=".ui.ProductoCrearActivity"/>
         <activity android:name=".ui.ProductosActivity"/>
         <activity android:name=".ui.CategoriasActivity"/>
+        <activity android:name=".ui.AjustesActivity" />
     </application>
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-feature android:name="android.hardware.camera" android:required="true" />
 </manifest>

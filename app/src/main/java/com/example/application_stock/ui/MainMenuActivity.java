@@ -18,6 +18,13 @@ public class MainMenuActivity extends AppCompatActivity {
                 startActivity(new Intent(this, ProductosActivity.class))
         );
 
+        findViewById(R.id.cardCategorias).setOnClickListener(v ->
+                startActivity(new Intent(this, CategoriasActivity.class))
+        );
+
+        findViewById(R.id.cardAjustes).setOnClickListener(v ->
+                startActivity(new Intent(this, AjustesActivity.class))
+        );
 
 /* Falta por implementar
         findViewById(R.id.cardAjustes).setOnClickListener(v ->

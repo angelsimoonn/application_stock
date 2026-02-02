@@ -1,12 +1,15 @@
 package com.example.application_stock.ui;
 
+import android.content.Context; // <--- IMPORTANTE
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 
 import com.example.application_stock.R;
 import com.example.application_stock.api.ApiClient;
@@ -29,15 +32,39 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
 
-        // 1. Inicializamos el TokenManager (que ahora usa encriptación internamente)
+        // 1. Inicializamos TokenManager
         tokenManager = new TokenManager(this);
 
-        // 2. Comprobar si ya estamos logueados para ir directo al menú (Opcional)
-        if (tokenManager.getToken() != null) {
-            irAlMenuPrincipal();
+        // 2. Cargamos las preferencias UNA SOLA VEZ
+        // Usamos 'Context.MODE_PRIVATE' para arreglar el error del modo
+        SharedPreferences prefs = getSharedPreferences("app_settings", Context.MODE_PRIVATE);
+
+        // --- APLICAR TEMA GUARDADO ---
+        int themeMode = prefs.getInt("theme_mode", 0);
+        switch (themeMode) {
+            case 0: AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM); break;
+            case 1: AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO); break;
+            case 2: AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); break;
         }
+
+        // --- IMPORTANTE: setContentView VA DESPUÉS DE CONFIGURAR EL TEMA ---
+        // Si lo pones antes, podría verse un parpadeo de colores incorrectos al abrir la app.
+        setContentView(R.layout.activity_login);
+
+
+        // --- LÓGICA DE AUTO LOGIN ---
+
+        // Reutilizamos la variable 'prefs' que ya creamos arriba (no ponemos 'SharedPreferences' otra vez)
+        boolean autoLoginEnabled = prefs.getBoolean("auto_login", true);
+
+        // Comprobamos: ¿Tengo token? Y ADEMÁS ¿El auto login está activado?
+        if (tokenManager.getToken() != null && autoLoginEnabled) {
+            irAlMenuPrincipal();
+            return; // Añadimos return para que no siga ejecutando código de vista innecesario
+        }
+
+        // ----------------------------------
 
         // 3. Vincular vistas del XML
         txtUser = findViewById(R.id.edtUsuario);
@@ -58,38 +85,29 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void login(String nombre, String password) {
-        // Bloqueamos el botón para que no le den dos veces
         btnLogin.setEnabled(false);
         btnLogin.setText("Cargando...");
 
         ApiService api = ApiClient.getClient(this).create(ApiService.class);
-
-        // Creamos el objeto Usuario con los datos (coincide con LoginRequest del backend)
         Usuario u = new Usuario(nombre, password);
 
         api.login(u).enqueue(new Callback<Map<String, String>>() {
             @Override
             public void onResponse(Call<Map<String, String>> call, Response<Map<String, String>> response) {
-                // Reactivamos el botón pase lo que pase
                 btnLogin.setEnabled(true);
                 btnLogin.setText("Entrar");
 
                 if (response.isSuccessful() && response.body() != null) {
-                    // El backend devuelve un JSON tipo: {"token": "...", "rol": "..."}
                     String token = response.body().get("token");
 
                     if (token != null) {
-                        // AQUÍ guardamos el token usando el método que te daba error antes
                         tokenManager.saveToken(token);
-
                         Toast.makeText(LoginActivity.this, "Login correcto", Toast.LENGTH_SHORT).show();
                         irAlMenuPrincipal();
                     } else {
-                        Toast.makeText(LoginActivity.this, "El servidor no envió un token válido", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(LoginActivity.this, "Error: Token vacío", Toast.LENGTH_SHORT).show();
                     }
-
                 } else {
-                    // Si el código es 401 (Unauthorized) o 403 (Forbidden)
                     Toast.makeText(LoginActivity.this, "Usuario o contraseña incorrectos", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -98,14 +116,13 @@ public class LoginActivity extends AppCompatActivity {
             public void onFailure(Call<Map<String, String>> call, Throwable t) {
                 btnLogin.setEnabled(true);
                 btnLogin.setText("Entrar");
-                Toast.makeText(LoginActivity.this, "Error de conexión: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(LoginActivity.this, "Error de conexión", Toast.LENGTH_LONG).show();
             }
         });
     }
 
     private void irAlMenuPrincipal() {
         Intent intent = new Intent(LoginActivity.this, MainMenuActivity.class);
-        // Estas flags evitan que el usuario pueda volver atrás al login pulsando "Atrás"
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();

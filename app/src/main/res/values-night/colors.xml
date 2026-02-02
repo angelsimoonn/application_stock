@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#90CAF9</color>
+    <color name="purple_500">#90CAF9</color> <color name="purple_700">#64B5F6</color>
+
+    <color name="teal_200">#80CBC4</color>
+    <color name="teal_700">#4DB6AC</color>
+
+    <color name="black">#FFFFFF</color>
+    <color name="white">#000000</color>
+
+    <color name="background_color">#121212</color> <color name="surface_color">#1E1E1E</color>     <color name="text_primary">#E0E0E0</color>      <color name="text_secondary">#B0B0B0</color>    <color name="stock_green">#69F0AE</color>       <color name="delete_red">#FF5252</color>        <color name="divider">#333333</color>
+    <color name="btn_circle_gray">#333333</color> <color name="btn_circle_blue">#1A237E</color> ```
+</resources>

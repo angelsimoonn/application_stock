@@ -2,10 +2,12 @@ package com.example.application_stock.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ImageButton;
+import android.widget.EditText; // IMPORTANTE
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -32,10 +34,11 @@ public class ProductosActivity extends AppCompatActivity {
 
     RecyclerView recycler;
     Spinner spinnerFiltro;
-    ImageButton btnGestionarCategorias;
+    EditText txtBuscador; // NUEVO
     FloatingActionButton btnCrearProducto;
 
     List<Categoria> listaCategorias = new ArrayList<>();
+    ProductosAdapter productosAdapter; // Necesitamos referencia al adapter
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,38 +47,57 @@ public class ProductosActivity extends AppCompatActivity {
 
         recycler = findViewById(R.id.recyclerProductos);
         spinnerFiltro = findViewById(R.id.spinnerFiltroCategoria);
-        btnGestionarCategorias = findViewById(R.id.btnGestionarCategorias);
+        txtBuscador = findViewById(R.id.txtBuscador); // NUEVO
         btnCrearProducto = findViewById(R.id.btnAddProducto);
 
         recycler.setLayoutManager(new LinearLayoutManager(this));
 
-        // Botón para crear producto
         btnCrearProducto.setOnClickListener(v ->
                 startActivity(new Intent(ProductosActivity.this, ProductoCrearActivity.class))
         );
 
-        // Botón para ir a crear Categorías (Tipos)
-        btnGestionarCategorias.setOnClickListener(v ->
-                startActivity(new Intent(ProductosActivity.this, CategoriasActivity.class))
-        );
+        // CONFIGURAR EL BUSCADOR
+        configurarBuscador();
 
         // Cargar datos
         cargarCategoriasParaFiltro();
     }
 
+    // MÉTODO NUEVO
+    private void configurarBuscador() {
+        txtBuscador.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Cada vez que escribimos, llamamos al adapter
+                if (productosAdapter != null) {
+                    productosAdapter.filtrar(s.toString());
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
-        // Recargamos el filtro seleccionado actualmente o todas
+        // Limpiamos el buscador al volver para evitar confusiones
+        if(txtBuscador != null) txtBuscador.setText("");
+
         if (spinnerFiltro.getSelectedItemPosition() > 0) {
-            // Si hay algo seleccionado que no sea "TODAS", filtramos
-            // (La lógica de recarga está en el listener del spinner)
+            // Lógica del spinner recarga sola
         } else {
             cargarTodosLosProductos();
         }
-        // También refrescamos las categorías por si has creado una nueva
         cargarCategoriasParaFiltro();
     }
+
+    // ... (El resto de cargarCategoriasParaFiltro sigue igual) ...
+    // Solo cambia donde asignamos el adapter en las respuestas de la API:
 
     private void cargarCategoriasParaFiltro() {
         ApiService api = ApiClient.getClient(this).create(ApiService.class);
@@ -84,8 +106,6 @@ public class ProductosActivity extends AppCompatActivity {
             public void onResponse(Call<List<Categoria>> call, Response<List<Categoria>> response) {
                 if (response.isSuccessful()) {
                     listaCategorias = response.body();
-
-                    // Truco: Añadir opción "TODAS" al principio
                     List<String> nombres = new ArrayList<>();
                     nombres.add("TODAS");
                     for (Categoria c : listaCategorias) {
@@ -100,14 +120,15 @@ public class ProductosActivity extends AppCompatActivity {
                     adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                     spinnerFiltro.setAdapter(adapter);
 
-                    // Listener para cuando cambias el filtro
                     spinnerFiltro.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                         @Override
                         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                            // Limpiamos buscador al cambiar categoría
+                            txtBuscador.setText("");
+
                             if (position == 0) {
                                 cargarTodosLosProductos();
                             } else {
-                                // -1 porque la posición 0 es "TODAS"
                                 Long idCat = listaCategorias.get(position - 1).getId();
                                 cargarProductosFiltrados(idCat);
                             }
@@ -128,7 +149,9 @@ public class ProductosActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<List<Producto>> call, Response<List<Producto>> response) {
                 if (response.isSuccessful()) {
-                    recycler.setAdapter(new ProductosAdapter(response.body()));
+                    // Guardamos la referencia en la variable global
+                    productosAdapter = new ProductosAdapter(response.body());
+                    recycler.setAdapter(productosAdapter);
                 }
             }
             @Override
@@ -142,7 +165,9 @@ public class ProductosActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<List<Producto>> call, Response<List<Producto>> response) {
                 if (response.isSuccessful()) {
-                    recycler.setAdapter(new ProductosAdapter(response.body()));
+                    // Guardamos la referencia en la variable global
+                    productosAdapter = new ProductosAdapter(response.body());
+                    recycler.setAdapter(productosAdapter);
                 }
             }
             @Override

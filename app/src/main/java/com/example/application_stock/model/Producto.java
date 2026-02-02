@@ -22,6 +22,12 @@ public class Producto {
     @SerializedName("categoriaId")
     private Long categoriaId;
 
+    @SerializedName("imagen")
+    private String imagen; // Guardará el Base64
+
+    public String getImagen() { return imagen; }
+    public void setImagen(String imagen) { this.imagen = imagen; }
+
     public Producto() {}
 
     // GETTERS Y SETTERS
