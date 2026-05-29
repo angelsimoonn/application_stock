@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="6dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="3dp"
+    app:cardBackgroundColor="?attr/colorSurface">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/imgProductoItem"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:src="@android:drawable/ic_menu_gallery"
+            android:scaleType="centerCrop"
+            android:background="?attr/colorOnSurfaceVariant"
+            app:shapeAppearanceOverlay="@style/RoundedImage" />
+
+        <TextView
+            android:id="@+id/txtNombreItem"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Nombre"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:layout_marginTop="8dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="4dp">
+
+            <TextView
+                android:id="@+id/txtPrecioItem"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="0 €"
+                android:textColor="@color/stock_green"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/btnMenosStock"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="@drawable/circle_background_gray"
+                android:src="@drawable/baseline_remove_circle_outline_24"
+                app:tint="@color/delete_red"
+                android:padding="2dp"
+                android:scaleType="fitCenter"/>
+
+            <TextView
+                android:id="@+id/txtStockItem"
+                android:layout_width="24dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="0"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textSize="14sp"
+                android:textStyle="bold"/>
+
+            <ImageButton
+                android:id="@+id/btnMasStock"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="@drawable/circle_background_blue"
+                android:src="@drawable/baseline_add_circle_outline_24"
+                app:tint="@color/purple_500"
+                android:padding="2dp"
+                android:scaleType="fitCenter"/>
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

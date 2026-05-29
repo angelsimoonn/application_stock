@@ -2,6 +2,7 @@ package com.example.application_stock.api;
 
 import com.example.application_stock.model.Categoria;
 import com.example.application_stock.model.Producto;
+import com.example.application_stock.model.RegisterRequest;
 import com.example.application_stock.model.Usuario;
 
 import java.util.List;
@@ -53,4 +54,14 @@ public interface ApiService {
 
     @PUT("producto/{id}/stock")
     Call<Producto> actualizarStock(@Path("id") Long id, @Query("cantidad") int cantidad);
+
+    @POST("auth/change-password")
+    Call<Void> cambiarPassword(@Body com.example.application_stock.model.ChangePasswordRequest request);
+
+    @POST("auth/forgot-password")
+    Call<Void> recuperarPassword(@Body java.util.Map<String, String> body);
+
+    @POST("auth/register")
+    Call<Map<String, String>> registrar(@Body RegisterRequest request);
+    // Nota: El backend devuelve AuthResponse (token), que es un JSON map, así que Map<String,String> nos vale.
 }

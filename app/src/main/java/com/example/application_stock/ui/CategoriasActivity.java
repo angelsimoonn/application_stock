@@ -1,9 +1,8 @@
 package com.example.application_stock.ui;
 
-import android.content.DialogInterface;
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
-import android.widget.EditText;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -11,10 +10,12 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.application_stock.R;
+import com.example.application_stock.adapter.CategoriaAdapter;
 import com.example.application_stock.api.ApiClient;
 import com.example.application_stock.api.ApiService;
 import com.example.application_stock.model.Categoria;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,78 +26,173 @@ import retrofit2.Response;
 
 public class CategoriasActivity extends AppCompatActivity {
 
-    ListView listView;
+    ListView listaCategorias;
     FloatingActionButton btnAdd;
-    List<Categoria> categorias;
-    ArrayAdapter<String> adapter;
+    CategoriaAdapter adapter;
+    List<Categoria> categorias = new ArrayList<>();
+    ApiService api;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Usamos un layout simple por defecto o crea uno nuevo
         setContentView(R.layout.activity_categorias);
 
-        listView = findViewById(R.id.listaCategorias);
+        listaCategorias = findViewById(R.id.listaCategorias);
         btnAdd = findViewById(R.id.btnAddCategoria);
 
-        btnAdd.setOnClickListener(v -> mostrarDialogoCrear());
+        api = ApiClient.getClient(this).create(ApiService.class);
 
+        adapter = new CategoriaAdapter(this, categorias, new CategoriaAdapter.OnCategoriaListener() {
+            @Override
+            public void onEditar(Categoria categoria) {
+                mostrarDialogoEditar(categoria);
+            }
+            @Override
+            public void onEliminar(Categoria categoria) {
+                confirmarEliminar(categoria);
+            }
+        });
+
+        listaCategorias.setAdapter(adapter);
+        btnAdd.setOnClickListener(v -> mostrarDialogoCrear());
         cargarCategorias();
     }
 
     private void cargarCategorias() {
-        ApiService api = ApiClient.getClient(this).create(ApiService.class);
         api.getCategorias().enqueue(new Callback<List<Categoria>>() {
             @Override
             public void onResponse(Call<List<Categoria>> call, Response<List<Categoria>> response) {
-                if (response.isSuccessful()) {
-                    categorias = response.body();
-                    List<String> nombres = new ArrayList<>();
-                    for (Categoria c : categorias) nombres.add(c.getNombre());
-
-                    adapter = new ArrayAdapter<>(CategoriasActivity.this, android.R.layout.simple_list_item_1, nombres);
-                    listView.setAdapter(adapter);
+                if (response.isSuccessful() && response.body() != null) {
+                    categorias.clear();
+                    categorias.addAll(response.body());
+                    adapter.notifyDataSetChanged();
+                } else {
+                    Toast.makeText(CategoriasActivity.this, getString(R.string.error_msg, response.code()), Toast.LENGTH_SHORT).show();
                 }
             }
             @Override
-            public void onFailure(Call<List<Categoria>> call, Throwable t) {}
+            public void onFailure(Call<List<Categoria>> call, Throwable t) {
+                Toast.makeText(CategoriasActivity.this, getString(R.string.no_connection), Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
     private void mostrarDialogoCrear() {
-        EditText input = new EditText(this);
-        input.setHint("Nombre del nuevo tipo");
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_crear_categoria, null);
+        TextInputEditText edtNombre = dialogView.findViewById(R.id.edtNombreCategoria);
+        Button btnConfirmar = dialogView.findViewById(R.id.btnConfirmarCategoria);
 
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle(R.string.new_category)
+                .setView(dialogView)
+                .setNegativeButton(R.string.cancel, null)
+                .create();
+
+        btnConfirmar.setOnClickListener(v -> {
+            String nombre = edtNombre.getText() != null ? edtNombre.getText().toString().trim() : "";
+            if (!nombre.isEmpty()) {
+                crearCategoria(nombre);
+                dialog.dismiss();
+            } else {
+                edtNombre.setError(getString(R.string.name_empty_error));
+            }
+        });
+
+        dialog.show();
+    }
+
+    private void mostrarDialogoEditar(Categoria categoria) {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_crear_categoria, null);
+        TextInputEditText edtNombre = dialogView.findViewById(R.id.edtNombreCategoria);
+        Button btnConfirmar = dialogView.findViewById(R.id.btnConfirmarCategoria);
+
+        edtNombre.setText(categoria.getNombre());
+        btnConfirmar.setText(R.string.save_changes);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle(R.string.edit_category)
+                .setView(dialogView)
+                .setNegativeButton(R.string.cancel, null)
+                .create();
+
+        btnConfirmar.setOnClickListener(v -> {
+            String nombre = edtNombre.getText() != null ? edtNombre.getText().toString().trim() : "";
+            if (!nombre.isEmpty()) {
+                categoria.setNombre(nombre);
+                editarCategoria(categoria);
+                dialog.dismiss();
+            } else {
+                edtNombre.setError(getString(R.string.name_empty_error));
+            }
+        });
+
+        dialog.show();
+    }
+
+    private void confirmarEliminar(Categoria categoria) {
         new AlertDialog.Builder(this)
-                .setTitle("Nuevo Tipo de Componente")
-                .setView(input)
-                .setPositiveButton("Crear", (dialog, which) -> {
-                    String nombre = input.getText().toString();
-                    if (!nombre.isEmpty()) crearCategoria(nombre);
-                })
-                .setNegativeButton("Cancelar", null)
+                .setTitle(R.string.delete_category)
+                .setMessage(getString(R.string.delete_confirm, categoria.getNombre()))
+                .setPositiveButton(R.string.delete, (d, w) -> eliminarCategoria(categoria))
+                .setNegativeButton(R.string.cancel, null)
                 .show();
     }
 
     private void crearCategoria(String nombre) {
         Categoria c = new Categoria();
         c.setNombre(nombre);
-        c.setDescripcion("Creada desde App");
+        c.setDescripcion("Created from App");
 
-        ApiClient.getClient(this).create(ApiService.class).crearCategoria(c).enqueue(new Callback<Categoria>() {
+        api.crearCategoria(c).enqueue(new Callback<Categoria>() {
             @Override
             public void onResponse(Call<Categoria> call, Response<Categoria> response) {
                 if (response.isSuccessful()) {
-                    Toast.makeText(CategoriasActivity.this, "Creada!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(CategoriasActivity.this, R.string.category_created, Toast.LENGTH_SHORT).show();
                     cargarCategorias();
                 } else {
-                    Toast.makeText(CategoriasActivity.this, "Error: " + response.code(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(CategoriasActivity.this, getString(R.string.error_msg, response.code()), Toast.LENGTH_SHORT).show();
                 }
             }
-
             @Override
-            public void onFailure(Call<Categoria> call, Throwable t) {}
+            public void onFailure(Call<Categoria> call, Throwable t) {
+                Toast.makeText(CategoriasActivity.this, R.string.no_connection, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void editarCategoria(Categoria categoria) {
+        api.actualizarCategoria(categoria.getId(), categoria).enqueue(new Callback<Categoria>() {
+            @Override
+            public void onResponse(Call<Categoria> call, Response<Categoria> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(CategoriasActivity.this, R.string.category_updated, Toast.LENGTH_SHORT).show();
+                    cargarCategorias();
+                } else {
+                    Toast.makeText(CategoriasActivity.this, getString(R.string.error_msg, response.code()), Toast.LENGTH_SHORT).show();
+                }
+            }
+            @Override
+            public void onFailure(Call<Categoria> call, Throwable t) {
+                Toast.makeText(CategoriasActivity.this, R.string.no_connection, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void eliminarCategoria(Categoria categoria) {
+        api.eliminarCategoria(categoria.getId()).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(CategoriasActivity.this, R.string.category_deleted, Toast.LENGTH_SHORT).show();
+                    cargarCategorias();
+                } else {
+                    Toast.makeText(CategoriasActivity.this, getString(R.string.error_msg, response.code()), Toast.LENGTH_SHORT).show();
+                }
+            }
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Toast.makeText(CategoriasActivity.this, R.string.no_connection, Toast.LENGTH_SHORT).show();
+            }
         });
     }
 }

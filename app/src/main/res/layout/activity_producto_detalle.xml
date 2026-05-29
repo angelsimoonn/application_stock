@@ -15,7 +15,7 @@
             android:text="Editar Producto"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:textColor="@color/text_primary"
+            android:textColor="?android:attr/textColorPrimary"
             android:layout_marginBottom="24dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
@@ -25,7 +25,7 @@
             android:layout_height="wrap_content"
             app:cardCornerRadius="12dp"
             app:cardElevation="2dp"
-            app:cardBackgroundColor="@color/white"
+            app:cardBackgroundColor="?attr/colorSurface"
             android:layout_marginBottom="24dp">
 
             <LinearLayout
@@ -39,7 +39,7 @@
                     android:id="@+id/imgPreviewDetalle"
                     android:layout_width="120dp"
                     android:layout_height="120dp"
-                    android:background="#F0F0F0"
+                    android:background="?attr/colorOnSurfaceVariant"
                     android:scaleType="centerCrop"
                     android:src="@android:drawable/ic_menu_camera"
                     app:shapeAppearanceOverlay="@style/RoundedImage" />
@@ -49,7 +49,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="Toca para cambiar foto"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?android:attr/textColorSecondary"
                     android:textSize="12sp" />
 
                 <LinearLayout
@@ -89,6 +89,7 @@
                 android:id="@+id/txtNombreDetalle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="?android:attr/textColorPrimary"
                 android:inputType="textCapSentences"/>
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -102,6 +103,7 @@
                 android:id="@+id/txtDescripcionDetalle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="?android:attr/textColorPrimary"
                 android:inputType="textMultiLine"
                 android:minLines="2"/>
         </com.google.android.material.textfield.TextInputLayout>
@@ -122,6 +124,7 @@
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/txtPrecioDetalle"
                     android:inputType="numberDecimal"
+                    android:textColor="?android:attr/textColorPrimary"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"/>
             </com.google.android.material.textfield.TextInputLayout>
@@ -136,6 +139,7 @@
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/txtStockDetalle"
                     android:inputType="number"
+                    android:textColor="?android:attr/textColorPrimary"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"/>
             </com.google.android.material.textfield.TextInputLayout>
@@ -143,7 +147,7 @@
 
         <TextView
             android:text="Categoría"
-            android:textColor="@color/text_secondary"
+            android:textColor="?android:attr/textColorSecondary"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="4dp"
             android:layout_width="wrap_content"
@@ -156,13 +160,13 @@
             android:layout_marginBottom="32dp"
             app:cardCornerRadius="4dp"
             app:cardElevation="0dp"
-            app:strokeColor="@color/text_secondary"
+            app:cardBackgroundColor="?attr/colorSurface"
+            app:strokeColor="?attr/colorOutline"
             app:strokeWidth="1dp">
             <Spinner
                 android:id="@+id/spinnerCategoriaDetalle"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:background="@drawable/abc_popup_background_mtrl_mult" />
+                android:layout_height="50dp" />
         </androidx.cardview.widget.CardView>
 
         <Button
@@ -171,6 +175,7 @@
             android:layout_width="match_parent"
             android:layout_height="55dp"
             android:backgroundTint="@color/purple_500"
+            android:textColor="@color/black"
             app:cornerRadius="8dp"
             android:layout_marginBottom="12dp"/>
 
@@ -179,7 +184,7 @@
             android:text="ELIMINAR PRODUCTO"
             android:layout_width="match_parent"
             android:layout_height="55dp"
-            android:backgroundTint="@color/white"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:textColor="@color/delete_red"
             app:strokeColor="@color/delete_red"
             app:strokeWidth="1dp"

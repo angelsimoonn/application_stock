@@ -1,3 +1,51 @@
 <resources>
-    <string name="app_name">application_stock</string>
+    <string name="app_name">AppStock</string>
+    <string name="welcome">Bienvenido a AppStock</string>
+    <string name="dashboard">Dashboard</string>
+    <string name="select_option">Selecciona una opción</string>
+    <string name="products">Productos</string>
+    <string name="manage_inventory">Gestionar inventario</string>
+    <string name="categories">Categorías</string>
+    <string name="types_families">Tipos y familias</string>
+    <string name="settings">Ajustes</string>
+    <string name="app_config">Configuración app</string>
+
+    <!-- Categorías -->
+    <string name="new_category">Nueva Categoría</string>
+    <string name="edit_category">Editar Categoría</string>
+    <string name="delete_category">Eliminar categoría</string>
+    <string name="delete_confirm">¿Seguro que quieres eliminar \"%1$s\"?</string>
+    <string name="category_created">Categoría creada</string>
+    <string name="category_updated">Categoría actualizada</string>
+    <string name="category_deleted">Categoría eliminada</string>
+    <string name="no_connection">Sin conexión</string>
+    <string name="error_msg">Error: %1$d</string>
+    <string name="name_empty_error">El nombre no puede estar vacío</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Eliminar</string>
+    <string name="confirm">Confirmar</string>
+    <string name="save_changes">GUARDAR CAMBIOS</string>
+
+    <!-- Ajustes -->
+    <string name="auto_login">Inicio automático</string>
+    <string name="logout">Cerrar Sesión</string>
+    <string name="change_password">Cambiar Contraseña</string>
+    <string name="theme">Tema</string>
+    <string name="theme_system">Sistema</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Oscuro</string>
+    <string name="language">Idioma</string>
+    <string name="language_es">Español</string>
+    <string name="language_en">Inglés</string>
+
+    <!-- Acerca de -->
+    <string name="about">Acerca de</string>
+    <string name="author">Autor: Desarrollador AppStock</string>
+    <string name="version">Versión: 1.0.0</string>
+    <string name="share_app">Compartir App</string>
+    <string name="visit_web">Visitar Web</string>
+    <string name="contact_support">Contactar Soporte</string>
+    <string name="call_phone">Llamar oficina</string>
+    <string name="play_audio">Reproducir sonido</string>
+    <string name="stop_audio">Parar sonido</string>
 </resources>

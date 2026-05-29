@@ -1,13 +1,15 @@
 package com.example.application_stock.ui;
 
-import android.content.Context; // <--- IMPORTANTE
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
@@ -17,6 +19,7 @@ import com.example.application_stock.api.ApiService;
 import com.example.application_stock.model.Usuario;
 import com.example.application_stock.storage.TokenManager;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import retrofit2.Call;
@@ -26,21 +29,18 @@ import retrofit2.Response;
 public class LoginActivity extends AppCompatActivity {
 
     private EditText txtUser, txtPass;
-    private Button btnLogin;
+    private Button btnLogin, btnIrRegistro;
+    private TextView txtOlvide;
     private TokenManager tokenManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // 1. Inicializamos TokenManager
         tokenManager = new TokenManager(this);
 
-        // 2. Cargamos las preferencias UNA SOLA VEZ
-        // Usamos 'Context.MODE_PRIVATE' para arreglar el error del modo
         SharedPreferences prefs = getSharedPreferences("app_settings", Context.MODE_PRIVATE);
 
-        // --- APLICAR TEMA GUARDADO ---
+        // Tema
         int themeMode = prefs.getInt("theme_mode", 0);
         switch (themeMode) {
             case 0: AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM); break;
@@ -48,40 +48,42 @@ public class LoginActivity extends AppCompatActivity {
             case 2: AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); break;
         }
 
-        // --- IMPORTANTE: setContentView VA DESPUÉS DE CONFIGURAR EL TEMA ---
-        // Si lo pones antes, podría verse un parpadeo de colores incorrectos al abrir la app.
         setContentView(R.layout.activity_login);
 
-
-        // --- LÓGICA DE AUTO LOGIN ---
-
-        // Reutilizamos la variable 'prefs' que ya creamos arriba (no ponemos 'SharedPreferences' otra vez)
+        // Auto Login
         boolean autoLoginEnabled = prefs.getBoolean("auto_login", true);
-
-        // Comprobamos: ¿Tengo token? Y ADEMÁS ¿El auto login está activado?
         if (tokenManager.getToken() != null && autoLoginEnabled) {
             irAlMenuPrincipal();
-            return; // Añadimos return para que no siga ejecutando código de vista innecesario
+            return;
         }
 
-        // ----------------------------------
-
-        // 3. Vincular vistas del XML
         txtUser = findViewById(R.id.edtUsuario);
         txtPass = findViewById(R.id.edtPassword);
         btnLogin = findViewById(R.id.btnLogin);
+        txtOlvide = findViewById(R.id.txtOlvidePass); // VINCULAR NUEVO TEXTO
 
-        // 4. Configurar el botón
+        // 2. VINCULAR LA VISTA
+        btnIrRegistro = findViewById(R.id.btnIrRegistro);
+
+        // 3. DARLE VIDA (Esto es lo que hace que cambie de pantalla)
+        btnIrRegistro.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, RegistroActivity.class);
+            startActivity(intent);
+        });
+
+        // Listener Login
         btnLogin.setOnClickListener(v -> {
             String usuario = txtUser.getText().toString().trim();
             String password = txtPass.getText().toString().trim();
-
             if (usuario.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Por favor, rellena todos los campos", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Rellena los campos", Toast.LENGTH_SHORT).show();
             } else {
                 login(usuario, password);
             }
         });
+
+        // Listener Olvidé Contraseña
+        txtOlvide.setOnClickListener(v -> mostrarDialogoRecuperar());
     }
 
     private void login(String nombre, String password) {
@@ -99,16 +101,21 @@ public class LoginActivity extends AppCompatActivity {
 
                 if (response.isSuccessful() && response.body() != null) {
                     String token = response.body().get("token");
-
                     if (token != null) {
                         tokenManager.saveToken(token);
+
+                        // --- CAMBIO CLAVE: GUARDAR EL USERNAME ---
+                        getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+                                .edit()
+                                .putString("username", nombre) // Guardamos quién se ha logueado
+                                .apply();
+                        // -----------------------------------------
+
                         Toast.makeText(LoginActivity.this, "Login correcto", Toast.LENGTH_SHORT).show();
                         irAlMenuPrincipal();
-                    } else {
-                        Toast.makeText(LoginActivity.this, "Error: Token vacío", Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    Toast.makeText(LoginActivity.this, "Usuario o contraseña incorrectos", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, "Credenciales incorrectas", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -116,7 +123,49 @@ public class LoginActivity extends AppCompatActivity {
             public void onFailure(Call<Map<String, String>> call, Throwable t) {
                 btnLogin.setEnabled(true);
                 btnLogin.setText("Entrar");
-                Toast.makeText(LoginActivity.this, "Error de conexión", Toast.LENGTH_LONG).show();
+                Toast.makeText(LoginActivity.this, "Error conexión", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void mostrarDialogoRecuperar() {
+        EditText inputEmail = new EditText(this);
+        inputEmail.setHint("Introduce tu email registrado");
+        inputEmail.setInputType(android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+
+        // Un poco de padding estético
+        int pad = (int)(16 * getResources().getDisplayMetrics().density);
+        inputEmail.setPadding(pad, pad, pad, pad);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Recuperar Contraseña")
+                .setMessage("Te enviaremos una contraseña temporal a tu correo.")
+                .setView(inputEmail)
+                .setPositiveButton("Enviar", (dialog, which) -> {
+                    String email = inputEmail.getText().toString().trim();
+                    if (!email.isEmpty()) enviarRecuperacion(email);
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+
+    private void enviarRecuperacion(String email) {
+        ApiService api = ApiClient.getClient(this).create(ApiService.class);
+        Map<String, String> body = new HashMap<>();
+        body.put("email", email);
+
+        api.recuperarPassword(body).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(LoginActivity.this, "¡Correo enviado! Revisa tu bandeja.", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(LoginActivity.this, "Email no encontrado.", Toast.LENGTH_SHORT).show();
+                }
+            }
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Toast.makeText(LoginActivity.this, "Error de red.", Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -7,11 +7,14 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.EditText; // IMPORTANTE
+import android.widget.EditText;
+import android.widget.ImageButton; // Importante
+import android.widget.PopupMenu; // Importante
 import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.GridLayoutManager; // Importante
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -34,11 +37,15 @@ public class ProductosActivity extends AppCompatActivity {
 
     RecyclerView recycler;
     Spinner spinnerFiltro;
-    EditText txtBuscador; // NUEVO
+    EditText txtBuscador;
     FloatingActionButton btnCrearProducto;
+    ImageButton btnOrdenar, btnCambiarVista; // Nuevos
 
     List<Categoria> listaCategorias = new ArrayList<>();
-    ProductosAdapter productosAdapter; // Necesitamos referencia al adapter
+    ProductosAdapter productosAdapter;
+
+    // Variable para controlar el modo actual (false = lista, true = grid)
+    private boolean isGridMode = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,59 +54,115 @@ public class ProductosActivity extends AppCompatActivity {
 
         recycler = findViewById(R.id.recyclerProductos);
         spinnerFiltro = findViewById(R.id.spinnerFiltroCategoria);
-        txtBuscador = findViewById(R.id.txtBuscador); // NUEVO
+        txtBuscador = findViewById(R.id.txtBuscador);
         btnCrearProducto = findViewById(R.id.btnAddProducto);
+        btnOrdenar = findViewById(R.id.btnOrdenar);
+        btnCambiarVista = findViewById(R.id.btnCambiarVista);
 
+        // Por defecto Lista lineal
         recycler.setLayoutManager(new LinearLayoutManager(this));
 
+        // --- BOTÓN CAMBIAR VISTA ---
+        btnCambiarVista.setOnClickListener(v -> toggleVista());
+
+        // --- BOTÓN ORDENAR ---
+        btnOrdenar.setOnClickListener(v -> mostrarMenuOrden(v));
+
+        // ... resto de listeners ...
         btnCrearProducto.setOnClickListener(v ->
                 startActivity(new Intent(ProductosActivity.this, ProductoCrearActivity.class))
         );
 
-        // CONFIGURAR EL BUSCADOR
         configurarBuscador();
-
-        // Cargar datos
         cargarCategoriasParaFiltro();
     }
 
-    // MÉTODO NUEVO
-    private void configurarBuscador() {
-        txtBuscador.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+    private void toggleVista() {
+        isGridMode = !isGridMode; // Cambiamos el estado
 
+        if (isGridMode) {
+            // Ponemos Cuadrícula (2 columnas)
+            recycler.setLayoutManager(new GridLayoutManager(this, 2));
+            btnCambiarVista.setImageResource(android.R.drawable.ic_menu_agenda); // Icono para volver a lista
+        } else {
+            // Ponemos Lista Lineal
+            recycler.setLayoutManager(new LinearLayoutManager(this));
+            btnCambiarVista.setImageResource(android.R.drawable.ic_dialog_dialer); // Icono para ir a grid
+        }
+
+        // Avisamos al adapter para que use el XML correcto
+        if (productosAdapter != null) {
+            productosAdapter.setGridMode(isGridMode);
+        }
+    }
+
+    private void mostrarMenuOrden(View v) {
+        PopupMenu popup = new PopupMenu(this, v);
+        // Añadimos opciones manualmente
+        popup.getMenu().add(0, 0, 0, "Nombre (A-Z)");
+        popup.getMenu().add(0, 1, 1, "Precio: Menor a Mayor");
+        popup.getMenu().add(0, 2, 2, "Precio: Mayor a Menor");
+        popup.getMenu().add(0, 3, 3, "Stock: Menor a Mayor");
+        popup.getMenu().add(0, 4, 4, "Stock: Mayor a Menor");
+
+        popup.setOnMenuItemClickListener(item -> {
+            if (productosAdapter != null) {
+                productosAdapter.ordenar(item.getItemId());
+            }
+            return true;
+        });
+        popup.show();
+    }
+
+    // ... (Métodos existentes: configurarBuscador, onResume, etc) ...
+
+    private void cargarTodosLosProductos() {
+        ApiService api = ApiClient.getClient(this).create(ApiService.class);
+        api.getProductos().enqueue(new Callback<List<Producto>>() {
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                // Cada vez que escribimos, llamamos al adapter
-                if (productosAdapter != null) {
-                    productosAdapter.filtrar(s.toString());
+            public void onResponse(Call<List<Producto>> call, Response<List<Producto>> response) {
+                if (response.isSuccessful()) {
+                    productosAdapter = new ProductosAdapter(response.body());
+                    // Aseguramos que el adapter respete el modo actual al cargar
+                    productosAdapter.setGridMode(isGridMode);
+                    recycler.setAdapter(productosAdapter);
                 }
             }
-
             @Override
+            public void onFailure(Call<List<Producto>> call, Throwable t) {}
+        });
+    }
+
+    private void cargarProductosFiltrados(Long categoriaId) {
+        ApiService api = ApiClient.getClient(this).create(ApiService.class);
+        api.getProductosPorCategoria(categoriaId).enqueue(new Callback<List<Producto>>() {
+            @Override
+            public void onResponse(Call<List<Producto>> call, Response<List<Producto>> response) {
+                if (response.isSuccessful()) {
+                    productosAdapter = new ProductosAdapter(response.body());
+                    // Aseguramos que el adapter respete el modo actual
+                    productosAdapter.setGridMode(isGridMode);
+                    recycler.setAdapter(productosAdapter);
+                }
+            }
+            @Override
+            public void onFailure(Call<List<Producto>> call, Throwable t) {}
+        });
+    }
+
+    // ... RESTO DE TU CÓDIGO (onResume, TextWatcher...) SE MANTIENE IGUAL
+    private void configurarBuscador() {
+        txtBuscador.addTextChangedListener(new TextWatcher() {
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (productosAdapter != null) productosAdapter.filtrar(s.toString());
+            }
             public void afterTextChanged(Editable s) {}
         });
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // Limpiamos el buscador al volver para evitar confusiones
-        if(txtBuscador != null) txtBuscador.setText("");
-
-        if (spinnerFiltro.getSelectedItemPosition() > 0) {
-            // Lógica del spinner recarga sola
-        } else {
-            cargarTodosLosProductos();
-        }
-        cargarCategoriasParaFiltro();
-    }
-
-    // ... (El resto de cargarCategoriasParaFiltro sigue igual) ...
-    // Solo cambia donde asignamos el adapter en las respuestas de la API:
-
     private void cargarCategoriasParaFiltro() {
+        // ... (Copia tu código anterior aquí) ...
         ApiService api = ApiClient.getClient(this).create(ApiService.class);
         api.getCategorias().enqueue(new Callback<List<Categoria>>() {
             @Override
@@ -123,9 +186,7 @@ public class ProductosActivity extends AppCompatActivity {
                     spinnerFiltro.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                         @Override
                         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                            // Limpiamos buscador al cambiar categoría
                             txtBuscador.setText("");
-
                             if (position == 0) {
                                 cargarTodosLosProductos();
                             } else {
@@ -143,37 +204,16 @@ public class ProductosActivity extends AppCompatActivity {
         });
     }
 
-    private void cargarTodosLosProductos() {
-        ApiService api = ApiClient.getClient(this).create(ApiService.class);
-        api.getProductos().enqueue(new Callback<List<Producto>>() {
-            @Override
-            public void onResponse(Call<List<Producto>> call, Response<List<Producto>> response) {
-                if (response.isSuccessful()) {
-                    // Guardamos la referencia en la variable global
-                    productosAdapter = new ProductosAdapter(response.body());
-                    recycler.setAdapter(productosAdapter);
-                }
-            }
-            @Override
-            public void onFailure(Call<List<Producto>> call, Throwable t) {}
-        });
-    }
+    @Override
+    protected void onResume() {
+        super.onResume();
 
-    private void cargarProductosFiltrados(Long categoriaId) {
-        ApiService api = ApiClient.getClient(this).create(ApiService.class);
-        api.getProductosPorCategoria(categoriaId).enqueue(new Callback<List<Producto>>() {
-            @Override
-            public void onResponse(Call<List<Producto>> call, Response<List<Producto>> response) {
-                if (response.isSuccessful()) {
-                    // Guardamos la referencia en la variable global
-                    productosAdapter = new ProductosAdapter(response.body());
-                    recycler.setAdapter(productosAdapter);
-                }
-            }
-            @Override
-            public void onFailure(Call<List<Producto>> call, Throwable t) {
-                Toast.makeText(ProductosActivity.this, "Error al filtrar", Toast.LENGTH_SHORT).show();
-            }
-        });
+        // Esto recargará las categorías y, al configurar el spinner,
+        // disparará automáticamente la carga de productos ("TODAS").
+        cargarCategoriasParaFiltro();
+
+        if (txtBuscador != null) {
+            txtBuscador.setText("");
+        }
     }
 }

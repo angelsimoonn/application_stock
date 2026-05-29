@@ -7,7 +7,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.application_stock.R;
 
-
 public class MainMenuActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,11 +25,8 @@ public class MainMenuActivity extends AppCompatActivity {
                 startActivity(new Intent(this, AjustesActivity.class))
         );
 
-/* Falta por implementar
-        findViewById(R.id.cardAjustes).setOnClickListener(v ->
-
-        );*/
-
-
+        findViewById(R.id.cardAcercaDe).setOnClickListener(v ->
+                startActivity(new Intent(this, AcercaDeActivity.class))
+        );
     }
 }
